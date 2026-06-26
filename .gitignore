@@ -1,0 +1,7 @@
+# IDE
+.idea/
+
+# Temp files
+*.swp
+index.js
+scribe-avatar.jpeg

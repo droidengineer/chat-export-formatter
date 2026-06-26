@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Export Formatter</title>
+    <style>
+        :root {
+            --color-bg-base: #0f172a;
+            --color-bg-elevated: #1e293b;
+            --color-bg-surface: #334155;
+            --color-text-primary: #f1f5f9;
+            --color-text-secondary: #cbd5e1;
+            --color-text-muted: #94a3b8;
+            --color-primary: #38bdf8;
+            --color-primary-hover: #0ea5e9;
+            --color-success: #22c55e;
+            --color-border: rgba(148, 163, 184, 0.2);
+            --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-family-mono: 'Courier New', monospace;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --color-bg-base: #ffffff;
+                --color-bg-elevated: #f8fafc;
+                --color-bg-surface: #f1f5f9;
+                --color-text-primary: #0f172a;
+                --color-text-secondary: #475569;
+                --color-text-muted: #64748b;
+                --color-primary: #0284c7;
+                --color-primary-hover: #0369a1;
+                --color-border: rgba(71, 85, 105, 0.2);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family-base),sans-serif;
+            background: var(--color-bg-base);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-bubble {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--color-primary);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-primary);
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+        }
+
+        .upload-section {
+            background: var(--color-bg-elevated);
+            border: 2px dashed var(--color-border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--color-primary);
+        }
+
+        .upload-section.drag-over {
+            border-color: var(--color-primary);
+            background: var(--color-bg-surface);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #fileInput {
+            opacity: 0;
+            position: absolute;
+            z-index: -1;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--color-primary);
+            color: var(--color-bg-base);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--color-bg-surface);
+            color: var(--color-text-primary);
+            margin-left: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-text-muted);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .control-group input[type="text"],
+        .control-group input[type="number"] {
+            padding: 0.5rem;
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            color: var(--color-text-primary);
+            font-size: 0.9rem;
+        }
+
+        .control-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .output-section {
+            display: none;
+        }
+
+        .output-section.active {
+            display: block;
+        }
+
+        .preview {
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .markdown-output {
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: var(--font-family-mono),monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            color: var(--color-text-secondary);
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: var(--color-bg-elevated);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .stat-label {
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .message:last-child {
+            border-bottom: none;
+        }
+
+        .speaker {
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .content {
+            color: var(--color-text-primary);
+            line-height: 1.8;
+        }
+
+        .action {
+            font-style: italic;
+            color: var(--color-text-muted);
+        }
+
+        .dialogue {
+            color: var(--color-text-primary);
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--color-success);
+            color: var(--color-success);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover {
+            color: var(--color-text-primary);
+        }
+
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .chat-container {
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 2rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+        }
+
+        .chat-message.right {
+            flex-direction: row-reverse;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-bg-base);
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .chat-bubble {
+            max-width: 60%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            position: relative;
+        }
+
+        .chat-message.left .chat-bubble {
+            background: var(--color-bg-surface);
+            color: var(--color-text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.right .chat-bubble {
+            background: var(--color-primary);
+            color: var(--color-bg-base);
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble-speaker {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+            opacity: 0.9;
+        }
+
+        .chat-bubble-content {
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .chat-bubble-action {
+            font-style: italic;
+            opacity: 0.85;
+            margin-top: 0.25rem;
+        }
+
+        .avatar-config {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .avatar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--color-bg-elevated);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+
+        .avatar-group label {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            min-width: 100px;
+        }
+
+        .avatar-group input[type="text"] {
+            padding: 0.5rem;
+            background: var(--color-bg-base);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            color: var(--color-text-primary);
+            font-size: 0.9rem;
+            width: 250px;
+        }
+
+        .avatar-group input[type="color"] {
+            padding: 0.25rem;
+            background: var(--color-bg-base);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            cursor: pointer;
+            width: 60px;
+            height: 38px;
+        }
+
+        .chat-container.with-background {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        .chat-container.with-background::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .chat-container.with-background .chat-message {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <img src="scribe-avatar.jpeg" class="avatar-bubble" alt="Scribes Avatar">
+            <div>
+                <h1>Scribe's Chat Export Formatter</h1>
+                <p class="subtitle">Transform chat exports into beautifully formatted Markdown or Chat Bubbles</p>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" accept=".txt,.md" />
+                <label for="fileInput" class="btn">Choose File</label>
+            </div>
+            <p style="margin-top: 1rem; color: var(--color-text-muted);">
+                Select or drag & drop a text file (.txt, .md, or no extension) containing your chat export
+            </p>
+        </div>
+
+        <div class="output-section" id="outputSection">
+            <div class="stats" id="stats"></div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="markdown">Markdown</button>
+                <button class="tab" data-tab="chat">Chat Bubbles</button>
+            </div>
+
+            <div id="successMessage"></div>
+
+            <!-- Markdown Tab -->
+            <div class="tab-content active" id="markdownTab">
+                <div class="controls">
+                    <div class="control-group">
+                        <input type="checkbox" id="includeActions" checked />
+                        <label for="includeActions">Include action text (asterisks)</label>
+                    </div>
+                    <div class="control-group">
+                        <input type="checkbox" id="separateDialogue" checked />
+                        <label for="separateDialogue">Separate dialogue from actions</label>
+                    </div>
+                    <div class="control-group">
+                        <input type="checkbox" id="addTimestamps" />
+                        <label for="addTimestamps">Add timestamps</label>
+                    </div>
+                    <div class="control-group">
+                        <label for="titleInput">Document Title:</label>
+                        <input type="text" id="titleInput" placeholder="Chat Export" />
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <button class="btn" id="copyBtn">Copy Markdown</button>
+                    <button class="btn btn-secondary" id="downloadBtn">Download .md</button>
+                </div>
+
+                <h2 style="margin-bottom: 1rem; color: var(--color-primary);">Preview</h2>
+                <div class="preview" id="preview"></div>
+
+                <h2 style="margin-bottom: 1rem; color: var(--color-primary);">Markdown Output</h2>
+                <div class="markdown-output" id="markdownOutput"></div>
+            </div>
+
+            <!-- Chat Bubbles Tab -->
+            <div class="tab-content" id="chatTab">
+                <div class="avatar-config">
+                    <div class="avatar-group">
+                        <label for="avatar1">First Participant Avatar:</label>
+                        <input type="text" id="avatar1" placeholder="Image URL or leave empty for initials" />
+                    </div>
+                    <div class="avatar-group">
+                        <label for="avatar2">Second Participant Avatar:</label>
+                        <input type="text" id="avatar2" placeholder="Image URL or leave empty for initials" />
+                    </div>
+                    <div class="avatar-group">
+                        <label for="backgroundImage">Background Image:</label>
+                        <input type="text" id="backgroundImage" placeholder="Image URL for chat background (optional)" />
+                    </div>
+                    <div class="avatar-group">
+                        <label for="backgroundColor">Or Background Color:</label>
+                        <input type="color" id="backgroundColor" value="#1e293b" />
+                        <button class="btn" id="clearBgBtn" style="padding: 0.5rem 1rem; margin-left: 0.5rem;">Clear</button>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <input type="checkbox" id="chatIncludeActions" checked />
+                        <label for="chatIncludeActions">Include action text (asterisks)</label>
+                    </div>
+                    <div class="control-group">
+                        <input type="checkbox" id="chatSeparateDialogue" checked />
+                        <label for="chatSeparateDialogue">Show actions separately</label>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <button class="btn" id="copyChatBtn">Copy HTML</button>
+                    <button class="btn btn-secondary" id="downloadChatBtn">Download .html</button>
+                </div>
+
+                <h2 style="margin-bottom: 1rem; color: var(--color-primary);">Chat Preview</h2>
+                <div class="chat-container" id="chatPreview"></div>
+
+                <h2 style="margin-bottom: 1rem; color: var(--color-primary);">HTML Output</h2>
+                <div class="markdown-output" id="chatOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rawText = '';
+        let parsedMessages = [];
+
+        const fileInput = document.getElementById('fileInput');
+        const outputSection = document.getElementById('outputSection');
+        const preview = document.getElementById('preview');
+        const markdownOutput = document.getElementById('markdownOutput');
+        const statsDiv = document.getElementById('stats');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const successMessage = document.getElementById('successMessage');
+
+        const includeActionsCheckbox = document.getElementById('includeActions');
+        const separateDialogueCheckbox = document.getElementById('separateDialogue');
+        const addTimestampsCheckbox = document.getElementById('addTimestamps');
+        const titleInput = document.getElementById('titleInput');
+
+        const chatPreview = document.getElementById('chatPreview');
+        const chatOutput = document.getElementById('chatOutput');
+        const copyChatBtn = document.getElementById('copyChatBtn');
+        const downloadChatBtn = document.getElementById('downloadChatBtn');
+        const chatIncludeActionsCheckbox = document.getElementById('chatIncludeActions');
+        const chatSeparateDialogueCheckbox = document.getElementById('chatSeparateDialogue');
+        const avatar1Input = document.getElementById('avatar1');
+        const avatar2Input = document.getElementById('avatar2');
+        const backgroundImageInput = document.getElementById('backgroundImage');
+        const backgroundColorInput = document.getElementById('backgroundColor');
+        const clearBgBtn = document.getElementById('clearBgBtn');
+        const uploadSection = document.querySelector('.upload-section');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop functionality
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadSection.classList.add('drag-over');
+        });
+
+        uploadSection.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadSection.classList.remove('drag-over');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadSection.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                // Check if file is text-based by extension or lack of extension
+                const fileName = file.name.toLowerCase();
+                const hasTextExtension = fileName.endsWith('.txt') || fileName.endsWith('.md');
+                const hasNoExtension = !fileName.includes('.');
+                const isTextType = file.type === 'text/plain' || file.type === '';
+                
+                if (hasTextExtension || (hasNoExtension && isTextType) || isTextType) {
+                    handleFile(file);
+                } else {
+                    alert('Please upload a text file (.txt, .md, or plain text file)');
+                }
+            }
+        });
+        copyBtn.addEventListener('click', copyToClipboard);
+        downloadBtn.addEventListener('click', downloadMarkdown);
+        copyChatBtn.addEventListener('click', copyChatHtml);
+        downloadChatBtn.addEventListener('click', downloadChatHtml);
+        
+        [includeActionsCheckbox, separateDialogueCheckbox, addTimestampsCheckbox, titleInput].forEach(el => {
+            el.addEventListener('change', updateOutput);
+        });
+
+        [chatIncludeActionsCheckbox, chatSeparateDialogueCheckbox, avatar1Input, avatar2Input, backgroundImageInput, backgroundColorInput].forEach(el => {
+            el.addEventListener('change', updateChatOutput);
+            el.addEventListener('input', updateChatOutput);
+        });
+
+        clearBgBtn.addEventListener('click', () => {
+            backgroundImageInput.value = '';
+            backgroundColorInput.value = '#1e293b';
+            updateChatOutput();
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tabName + 'Tab').classList.add('active');
+            });
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            handleFile(file);
+        }
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                rawText = e.target.result;
+                parseChat(rawText);
+                updateOutput();
+                outputSection.classList.add('active');
+            };
+            reader.readAsText(file);
+        }
+
+        function parseChat(text) {
+            const lines = text.split('\n');
+            parsedMessages = [];
+            let currentMessage = null;
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line) return;
+
+                const speakerMatch = line.match(/^([^:]+):\s*(.*)$/);
+                
+                if (speakerMatch) {
+                    if (currentMessage) {
+                        parsedMessages.push(currentMessage);
+                    }
+                    currentMessage = {
+                        speaker: speakerMatch[1].trim(),
+                        content: speakerMatch[2].trim()
+                    };
+                } else if (currentMessage) {
+                    currentMessage.content += ' ' + line;
+                }
+            });
+
+            if (currentMessage) {
+                parsedMessages.push(currentMessage);
+            }
+        }
+
+        function formatMessage(message, options) {
+            const { includeActions, separateDialogue } = options;
+            let content = message.content;
+
+            if (!includeActions) {
+                content = content.replace(/\*[^*]+\*/g, '').trim();
+            } else if (separateDialogue) {
+                const parts = [];
+                const regex = /(\*[^*]+\*)|([^*]+)/g;
+                let match;
+
+                while ((match = regex.exec(content)) !== null) {
+                    if (match[1]) {
+                        parts.push({ type: 'action', text: match[1].replace(/^\*|\*$/g, '') });
+                    } else if (match[2] && match[2].trim()) {
+                        parts.push({ type: 'dialogue', text: match[2].trim() });
+                    }
+                }
+
+                return parts;
+            }
+
+            return content;
+        }
+
+        function generateMarkdown() {
+            const options = {
+                includeActions: includeActionsCheckbox.checked,
+                separateDialogue: separateDialogueCheckbox.checked,
+                addTimestamps: addTimestampsCheckbox.checked
+            };
+
+            const title = titleInput.value || 'Chat Export';
+            let markdown = `# ${title}\n\n`;
+
+            if (options.addTimestamps) {
+                markdown += `*Generated: ${new Date().toLocaleString()}*\n\n`;
+            }
+
+            markdown += `---\n\n`;
+
+            parsedMessages.forEach((message, index) => {
+                const formatted = formatMessage(message, options);
+
+                markdown += `### ${message.speaker}\n\n`;
+
+                if (Array.isArray(formatted)) {
+                    formatted.forEach(part => {
+                        if (part.type === 'action') {
+                            markdown += `*${part.text}*\n\n`;
+                        } else {
+                            markdown += `${part.text}\n\n`;
+                        }
+                    });
+                } else {
+                    markdown += `${formatted}\n\n`;
+                }
+
+                if (index < parsedMessages.length - 1) {
+                    markdown += `---\n\n`;
+                }
+            });
+
+            return markdown;
+        }
+
+        function generatePreview() {
+            const options = {
+                includeActions: includeActionsCheckbox.checked,
+                separateDialogue: separateDialogueCheckbox.checked
+            };
+
+            let html = '';
+
+            parsedMessages.forEach(message => {
+                const formatted = formatMessage(message, options);
+                
+                html += `<div class="message">`;
+                html += `<div class="speaker">${escapeHtml(message.speaker)}</div>`;
+                html += `<div class="content">`;
+
+                if (Array.isArray(formatted)) {
+                    formatted.forEach(part => {
+                        if (part.type === 'action') {
+                            html += `<div class="action">${escapeHtml(part.text)}</div>`;
+                        } else {
+                            html += `<div class="dialogue">${escapeHtml(part.text)}</div>`;
+                        }
+                    });
+                } else {
+                    html += escapeHtml(formatted);
+                }
+
+                html += `</div></div>`;
+            });
+
+            return html;
+        }
+
+        function updateOutput() {
+            if (parsedMessages.length === 0) return;
+
+            const markdown = generateMarkdown();
+            const previewHtml = generatePreview();
+
+            markdownOutput.textContent = markdown;
+            preview.innerHTML = previewHtml;
+
+            updateStats();
+            updateChatOutput();
+        }
+
+        function updateChatOutput() {
+            if (parsedMessages.length === 0) return;
+
+            const chatHtml = generateChatPreview();
+            chatPreview.innerHTML = chatHtml;
+
+            // Apply background image or color
+            const bgUrl = backgroundImageInput.value.trim();
+            const bgColor = backgroundColorInput.value;
+            
+            if (bgUrl) {
+                chatPreview.style.backgroundImage = `url('${bgUrl}')`;
+                chatPreview.style.backgroundColor = '';
+                chatPreview.classList.add('with-background');
+            } else if (bgColor && bgColor !== '#1e293b') {
+                chatPreview.style.backgroundImage = '';
+                chatPreview.style.backgroundColor = bgColor;
+                chatPreview.classList.remove('with-background');
+            } else {
+                chatPreview.style.backgroundImage = '';
+                chatPreview.style.backgroundColor = '';
+                chatPreview.classList.remove('with-background');
+            }
+
+            chatOutput.textContent = generateChatHtml();
+        }
+
+        function generateChatPreview() {
+            const options = {
+                includeActions: chatIncludeActionsCheckbox.checked,
+                separateDialogue: chatSeparateDialogueCheckbox.checked
+            };
+
+            const participants = [...new Set(parsedMessages.map(m => m.speaker))];
+            const firstParticipant = participants[0];
+            
+            let html = '';
+
+            parsedMessages.forEach(message => {
+                const isLeft = message.speaker === firstParticipant;
+                const alignment = isLeft ? 'left' : 'right';
+                const formatted = formatMessage(message, options);
+                
+                html += `<div class="chat-message ${alignment}">`;
+                
+                // Avatar
+                const avatarUrl = isLeft ? avatar1Input.value : avatar2Input.value;
+                const initials = message.speaker.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                
+                html += `<div class="chat-avatar">`;
+                if (avatarUrl) {
+                    html += `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(message.speaker)}" />`;
+                } else {
+                    html += initials;
+                }
+                html += `</div>`;
+                
+                // Bubble
+                html += `<div class="chat-bubble">`;
+                html += `<div class="chat-bubble-speaker">${escapeHtml(message.speaker)}</div>`;
+                html += `<div class="chat-bubble-content">`;
+
+                if (Array.isArray(formatted)) {
+                    formatted.forEach(part => {
+                        if (part.type === 'action') {
+                            html += `<div class="chat-bubble-action">${escapeHtml(part.text)}</div>`;
+                        } else {
+                            html += `<div>${escapeHtml(part.text)}</div>`;
+                        }
+                    });
+                } else {
+                    html += escapeHtml(formatted);
+                }
+
+                html += `</div></div></div>`;
+            });
+
+            return html;
+        }
+
+        function generateChatHtml() {
+            const chatContent = chatPreview.innerHTML;
+            const bgUrl = backgroundImageInput.value.trim();
+            const bgColor = backgroundColorInput.value;
+            
+            let bgStyle = '';
+            let overlayStyle = '';
+            
+            if (bgUrl) {
+                bgStyle = `
+            background-image: url('${bgUrl}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            position: relative;`;
+                overlayStyle = `
+        .chat-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+        .chat-message {
+            position: relative;
+            z-index: 1;
+        }`;
+            } else if (bgColor && bgColor !== '#1e293b') {
+                bgStyle = `
+            background-color: ${bgColor};`;
+            }
+            
+            return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Export</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 2rem;
+        }
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 2rem;${bgStyle}
+        }${overlayStyle},
+        .chat-message {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+        }
+        .chat-message.right {
+            flex-direction: row-reverse;
+        }
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #38bdf8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0f172a;
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .chat-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .chat-bubble {
+            max-width: 60%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+        }
+        .chat-message.left .chat-bubble {
+            background: #334155;
+            color: #f1f5f9;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-message.right .chat-bubble {
+            background: #38bdf8;
+            color: #0f172a;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-bubble-speaker {
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+            opacity: 0.9;
+        }
+        .chat-bubble-content {
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+        .chat-bubble-action {
+            font-style: italic;
+            opacity: 0.85;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        ${chatContent}
+    </div>
+</body>
+</html>`;
+        }
+
+        function copyChatHtml() {
+            const html = chatOutput.textContent;
+            navigator.clipboard.writeText(html).then(() => {
+                successMessage.innerHTML = '<div class="success-message">✓ Copied HTML to clipboard!</div>';
+                setTimeout(() => {
+                    successMessage.innerHTML = '';
+                }, 3000);
+            });
+        }
+
+        function downloadChatHtml() {
+            const html = chatOutput.textContent;
+            const title = titleInput.value || 'chat_export';
+            const filename = `${title.replace(/\s+/g, '_').toLowerCase()}_chat.html`;
+            
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            successMessage.innerHTML = '<div class="success-message">✓ Chat HTML download started!</div>';
+            setTimeout(() => {
+                successMessage.innerHTML = '';
+            }, 3000);
+        }
+
+        function updateStats() {
+            const speakers = new Set(parsedMessages.map(m => m.speaker));
+            const totalWords = parsedMessages.reduce((sum, m) => {
+                return sum + m.content.split(/\s+/).length;
+            }, 0);
+
+            statsDiv.innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-label">Total Messages</div>
+                    <div class="stat-value">${parsedMessages.length}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Participants</div>
+                    <div class="stat-value">${speakers.size}</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Words</div>
+                    <div class="stat-value">${totalWords.toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        function copyToClipboard() {
+            const markdown = markdownOutput.textContent;
+            navigator.clipboard.writeText(markdown).then(() => {
+                successMessage.innerHTML = '<div class="success-message">✓ Copied to clipboard!</div>';
+                setTimeout(() => {
+                    successMessage.innerHTML = '';
+                }, 3000);
+            });
+        }
+
+        function downloadMarkdown() {
+            const markdown = markdownOutput.textContent;
+            const title = titleInput.value || 'chat_export';
+            const filename = `${title.replace(/\s+/g, '_').toLowerCase()}.md`;
+            
+            const blob = new Blob([markdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            successMessage.innerHTML = '<div class="success-message">✓ Download started!</div>';
+            setTimeout(() => {
+                successMessage.innerHTML = '';
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+

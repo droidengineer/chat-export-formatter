@@ -20,8 +20,9 @@
             --font-family-mono: 'Courier New', monospace;
         }
 
+        /* Light palette when the OS asks for it and the user has not chosen manually */
         @media (prefers-color-scheme: light) {
-            :root {
+            :root:not([data-theme="dark"]) {
                 --color-bg-base: #ffffff;
                 --color-bg-elevated: #f8fafc;
                 --color-bg-surface: #f1f5f9;
@@ -32,6 +33,19 @@
                 --color-primary-hover: #0369a1;
                 --color-border: rgba(71, 85, 105, 0.2);
             }
+        }
+
+        /* Light palette when the user picks it with the toggle */
+        :root[data-theme="light"] {
+            --color-bg-base: #ffffff;
+            --color-bg-elevated: #f8fafc;
+            --color-bg-surface: #f1f5f9;
+            --color-text-primary: #0f172a;
+            --color-text-secondary: #475569;
+            --color-text-muted: #64748b;
+            --color-primary: #0284c7;
+            --color-primary-hover: #0369a1;
+            --color-border: rgba(71, 85, 105, 0.2);
         }
 
         * {
@@ -76,6 +90,88 @@
 
         .subtitle {
             color: var(--color-text-secondary);
+        }
+
+        .theme-toggle {
+            margin-left: auto;
+            flex-shrink: 0;
+            padding: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+            line-height: 0;
+        }
+
+        .theme-toggle-track {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 64px;
+            height: 32px;
+            padding: 0 7px;
+            border-radius: 999px;
+            background: var(--color-bg-elevated);
+            border: 1px solid var(--color-border);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .theme-toggle:hover .theme-toggle-track {
+            border-color: var(--color-primary);
+        }
+
+        .theme-toggle:focus-visible .theme-toggle-track {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        .theme-toggle-icon {
+            position: relative;
+            z-index: 1;
+            font-size: 0.8rem;
+            line-height: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .theme-toggle-sun {
+            color: #f59e0b;
+            opacity: 0.35;
+        }
+
+        .theme-toggle-moon {
+            color: var(--color-text-secondary);
+            opacity: 1;
+        }
+
+        .theme-toggle[aria-checked="true"] .theme-toggle-sun {
+            opacity: 1;
+        }
+
+        .theme-toggle[aria-checked="true"] .theme-toggle-moon {
+            opacity: 0.35;
+        }
+
+        .theme-toggle-thumb {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .theme-toggle[aria-checked="true"] .theme-toggle-thumb {
+            transform: translateX(32px);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .theme-toggle-track,
+            .theme-toggle-thumb,
+            .theme-toggle-icon {
+                transition: none;
+            }
         }
 
         .upload-section {
@@ -448,6 +544,17 @@
             z-index: 1;
         }
     </style>
+    <script>
+        // Apply the saved theme before first paint so there is no flash of the wrong palette.
+        (function () {
+            try {
+                const stored = localStorage.getItem('cef-theme');
+                if (stored === 'light' || stored === 'dark') {
+                    document.documentElement.setAttribute('data-theme', stored);
+                }
+            } catch (e) { /* storage unavailable (e.g. private mode) */ }
+        })();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -457,6 +564,13 @@
                 <h1>Scribe's Chat Export Formatter</h1>
                 <p class="subtitle">Transform chat exports into beautifully formatted Markdown or Chat Bubbles</p>
             </div>
+            <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Toggle light and dark theme">
+                <span class="theme-toggle-track">
+                    <span class="theme-toggle-icon theme-toggle-sun" aria-hidden="true">☀</span>
+                    <span class="theme-toggle-icon theme-toggle-moon" aria-hidden="true">☾</span>
+                    <span class="theme-toggle-thumb"></span>
+                </span>
+            </button>
         </div>
 
         <div class="upload-section">
@@ -589,6 +703,36 @@
         const backgroundColorInput = document.getElementById('backgroundColor');
         const clearBgBtn = document.getElementById('clearBgBtn');
         const uploadSection = document.querySelector('.upload-section');
+        const themeToggle = document.getElementById('themeToggle');
+
+        // Theme toggle
+        const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
+
+        function currentTheme() {
+            const explicit = document.documentElement.getAttribute('data-theme');
+            if (explicit === 'light' || explicit === 'dark') return explicit;
+            return lightQuery.matches ? 'light' : 'dark';
+        }
+
+        function syncThemeToggle() {
+            const isLight = currentTheme() === 'light';
+            themeToggle.setAttribute('aria-checked', String(isLight));
+            themeToggle.title = isLight ? 'Switch to dark mode' : 'Switch to light mode';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const next = currentTheme() === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            try {
+                localStorage.setItem('cef-theme', next);
+            } catch (e) { /* storage unavailable (e.g. private mode) */ }
+            syncThemeToggle();
+        });
+
+        // Follow the OS while the user has not made an explicit choice
+        lightQuery.addEventListener('change', syncThemeToggle);
+
+        syncThemeToggle();
 
         fileInput.addEventListener('change', handleFileSelect);
 

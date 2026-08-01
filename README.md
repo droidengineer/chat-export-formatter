@@ -1,4 +1,4 @@
-# Scribe's Chat Export Formatter
+# Scribe's AI Chat Export Formatter
 >Transform chat exports into beautifully formatted Markdown or Chat Bubbles
 
 ---
@@ -11,6 +11,11 @@
 - No server-side processing required
 - No need to install any software
 
+## What it does
+Parses text chat exports into a Markdown
+or Chat Bubbles format, allowing you to save in .md and .html formats, respectively, and providing a simple and prettier
+way to view chat logs.
+
 ## Why?
 Have you ever had a conversation with an AI character that was so amazing that you wanted to keep it? Or, had a conversation
 whose dialog you wanted to use in a story? Or wanted a clear and easily understandable way to present conversational data
@@ -20,11 +25,6 @@ Only keeping your conversations on the server can risk losing them, and exportin
 files whose format is terse and not necessarily easy to read. I wanted a simple way to convert
 my chat exports, an aesthetically pleasing way to view my saved/exported convos, and I wanted to be able to save them 
 in a single file format that I could share.
-
-## What it does
-Uses the [Chat Export Parser](https://github.com/droidengineer/chat-export-formatter) to parse chat exports into a Markdown 
-or Chat Bubbles format, allowing you to save in .md and .html formats, respectively, and providing a simple and prettier 
-way to view chat logs.
 
 ## Demo
 https://droidengineer.github.io/chat-export-formatter/

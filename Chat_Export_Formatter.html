@@ -374,7 +374,8 @@
         .tab {
             padding: 0.75rem 1.5rem;
             background: transparent;
-            border: none;
+            border: solid  var(--color-text-primary);
+            border-radius: 6px;
             color: var(--color-text-secondary);
             font-size: 1rem;
             cursor: pointer;
@@ -388,7 +389,8 @@
 
         .tab.active {
             color: var(--color-primary);
-            border-bottom-color: var(--color-primary);
+            /*border-bottom-color: var(--color-primary);*/
+            border-color: var(--color-primary);
         }
 
         .tab-content {
@@ -1204,15 +1206,15 @@
             statsDiv.innerHTML = `
                 <div class="stat-box">
                     <div class="stat-label">Total Messages</div>
-                    <div class="stat-value">${parsedMessages.length}</div>
+                    <div class="stat-value">💬  ${parsedMessages.length}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Participants</div>
-                    <div class="stat-value">${speakers.size}</div>
+                    <div class="stat-value">👥  ${speakers.size}</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Total Words</div>
-                    <div class="stat-value">${totalWords.toLocaleString()}</div>
+                    <div class="stat-value">🔤  ${totalWords.toLocaleString()}</div>
                 </div>
             `;
         }

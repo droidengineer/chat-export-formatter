@@ -407,7 +407,6 @@
             max-height: 600px;
             overflow-y: auto;
         }
-
         .chat-message {
             display: flex;
             align-items: flex-start;
@@ -964,8 +963,8 @@
         function updateChatOutput() {
             if (parsedMessages.length === 0) return;
 
-            const chatHtml = generateChatPreview();
-            chatPreview.innerHTML = chatHtml;
+            //const chatHtml = generateChatPreview();
+            chatPreview.innerHTML = generateChatPreview(); //chatHtml;
 
             // Apply background image or color
             const bgUrl = backgroundImageInput.value.trim();
@@ -1098,7 +1097,7 @@
             background: #1e293b;
             border-radius: 12px;
             padding: 2rem;${bgStyle}
-        }${overlayStyle},
+        }${overlayStyle}
         .chat-message {
             display: flex;
             align-items: flex-start;

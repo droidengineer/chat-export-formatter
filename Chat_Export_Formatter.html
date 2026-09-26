@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Export Formatter</title>
     <style>
+        /* Dark palette */
         :root {
             --color-bg-base: #0f172a;
             --color-bg-elevated: #1e293b;
             --color-bg-surface: #334155;
-            --color-text-primary: #f1f5f9;
-            --color-text-secondary: #cbd5e1;
+            --color-text-primary: #faf5f9; /*faf5f9*/
+            --color-text-secondary: #be8b71;
             --color-text-muted: #94a3b8;
-            --color-primary: #38bdf8;
-            --color-primary-hover: #0ea5e9;
+            --color-primary: #459245; /*#38bdf8*/
+            --color-primary-hover: #22c55e; /*0ea5e9*/
             --color-success: #22c55e;
             --color-border: rgba(148, 163, 184, 0.2);
-            --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-family-base: -apple-system, BlinkMacSystemFont, FiraCode, 'Segoe UI', Roboto, sans-serif;
             --font-family-mono: 'Courier New', monospace;
         }
 
@@ -43,9 +44,12 @@
             --color-text-primary: #0f172a;
             --color-text-secondary: #475569;
             --color-text-muted: #64748b;
+            --color-text-action: #081f5d;
             --color-primary: #0284c7;
             --color-primary-hover: #0369a1;
+            --color-success: #22c55e;
             --color-border: rgba(71, 85, 105, 0.2);
+
         }
 
         * {
@@ -298,6 +302,12 @@
             color: var(--color-text-secondary);
         }
 
+        .version {
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+            text-align: right;
+        }
+
         .stats {
             display: flex;
             gap: 2rem;
@@ -313,7 +323,7 @@
         }
 
         .stat-label {
-            color: var(--color-text-muted);
+            color: var(--color-text-secondary);
             font-size: 0.85rem;
             margin-bottom: 0.25rem;
         }
@@ -374,7 +384,7 @@
         .tab {
             padding: 0.75rem 1.5rem;
             background: transparent;
-            border: solid  var(--color-text-primary);
+            border: solid  var(--color-text-secondary);
             border-radius: 6px;
             color: var(--color-text-secondary);
             font-size: 1rem;
@@ -671,6 +681,7 @@
                 <h2 style="margin-bottom: 1rem; color: var(--color-primary);">HTML Output</h2>
                 <div class="markdown-output" id="chatOutput"></div>
             </div>
+            <div class="version" id="version">v1.0.1</div>
         </div>
     </div>
 
@@ -705,6 +716,7 @@
         const clearBgBtn = document.getElementById('clearBgBtn');
         const uploadSection = document.querySelector('.upload-section');
         const themeToggle = document.getElementById('themeToggle');
+        const versionElement = document.getElementById('version');
 
         // Theme toggle
         const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
@@ -1021,7 +1033,7 @@
                 
                 // Bubble
                 html += `<div class="chat-bubble">`;
-                html += `<div class="chat-bubble-speaker">${escapeHtml(message.speaker)}</div>`;
+                // html += `<div class="chat-bubble-speaker">${escapeHtml(message.speaker)}</div>`;
                 html += `<div class="chat-bubble-content">`;
 
                 if (Array.isArray(formatted)) {

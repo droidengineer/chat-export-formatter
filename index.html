@@ -594,7 +594,7 @@
             <img src="https://cdn4.flipped.chat/100x0,jpeg,q60/https://xddcdn.psyckey.com/200669482279596272/142825094895374336.jpeg" class="avatar-bubble" alt="Scribes Avatar">
             <div>
                 <h1>Scribe's Chat Export Formatter</h1>
-                <p class="subtitle">Transform chat exports into beautifully formatted Markdown or Chat Bubbles</p>
+                <p class="subtitle">Transform text chat exports into beautifully formatted Markdown or Chat Bubbles</p>
             </div>
             <button type="button" class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" aria-label="Toggle light and dark theme">
                 <span class="theme-toggle-track">
@@ -702,13 +702,16 @@
                 <h2 style="margin-bottom: 1rem; color: var(--color-primary);">HTML Output</h2>
                 <div class="markdown-output" id="chatOutput"></div>
             </div>
-            <div class="version" id="version">v1.0.1</div>
+<!--            <div class="version" id="version">v1.0.1</div>-->
         </div>
+        <div class="version" id="version">v1.0.1</div>
+
     </div>
 
     <script>
         let rawText = '';
         let parsedMessages = [];
+        const VERSION = '0.1.14';
 
         const fileInput = document.getElementById('fileInput');
         const outputSection = document.getElementById('outputSection');
@@ -738,6 +741,8 @@
         const uploadSection = document.querySelector('.upload-section');
         const themeToggle = document.getElementById('themeToggle');
         const versionElement = document.getElementById('version');
+
+        versionElement.textContent = 'v' + VERSION;
 
         // Theme toggle
         const lightQuery = window.matchMedia('(prefers-color-scheme: light)');
